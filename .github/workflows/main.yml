@@ -19,13 +19,13 @@ jobs:
 
     - name: Clone kernel source
       run: |
-        git clone --depth=1 https://github.com/MiCode/Xiaomi_Kernel_OpenSource -b android-14.0-oss kernel
+        git clone --depth=1 https://github.com/MiCode/Xiaomi_Kernel_OpenSource -b bsp-duchamp-u-oss kernel
 
     - name: Clone MTK kernel modules
       run: |
-        git clone --depth=1 https://github.com/MiCode/MTK_kernel_modules -b android-14.0-oss mtk_modules
-        git clone --depth=1 https://github.com/MiCode/MTK_kernel_device_modules -b android-14.0-oss device_modules
-        git clone --depth=1 https://github.com/MiCode/mtkcam-kernel_device_modules -b android-14.0-oss cam_modules
+        git clone --depth=1 https://github.com/MiCode/MTK_kernel_modules -b bsp-duchamp-u-oss mtk_modules
+        git clone --depth=1 https://github.com/MiCode/MTK_kernel_device_modules -b bsp-duchamp-u-oss device_modules
+        git clone --depth=1 https://github.com/MiCode/mtkcam-kernel_device_modules -b bsp-duchamp-u-oss cam_modules
 
     - name: Setup clang
       run: |
