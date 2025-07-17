@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
@@ -42,7 +42,7 @@ jobs:
         export LLVM=1
 
         cd kernel
-        make O=out duchamp_user_defconfig
+        make O=out gki_defconfig
         make -j$(nproc) O=out
 
     - name: Build vendor_dlkm
@@ -72,7 +72,7 @@ jobs:
         mke2fs -t ext4 -b 4096 -d vendor_dlkm vendor_dlkm.img 100M
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: duchamp-kernel
         path: |
