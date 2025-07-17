@@ -1,0 +1,81 @@
+name: Build GKI Kernel for Poco X6 Pro (duchamp_u)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y bc bison build-essential cpio curl flex git libssl-dev \
+          libncurses5-dev libelf-dev python3 unzip zip
+
+    - name: Clone kernel source
+      run: |
+        git clone --depth=1 https://github.com/MiCode/Xiaomi_Kernel_OpenSource -b android-14.0-oss kernel
+
+    - name: Clone MTK kernel modules
+      run: |
+        git clone --depth=1 https://github.com/MiCode/MTK_kernel_modules -b android-14.0-oss mtk_modules
+        git clone --depth=1 https://github.com/MiCode/MTK_kernel_device_modules -b android-14.0-oss device_modules
+        git clone --depth=1 https://github.com/MiCode/mtkcam-kernel_device_modules -b android-14.0-oss cam_modules
+
+    - name: Setup clang
+      run: |
+        mkdir -p clang
+        curl -LO https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r547379.tar.gz
+        tar -C clang -xzf clang-r547379.tar.gz
+
+    - name: Build kernel
+      run: |
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export LLVM=1
+
+        cd kernel
+        make O=out duchamp_user_defconfig
+        make -j$(nproc) O=out
+
+    - name: Build vendor_dlkm
+      run: |
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export LLVM=1
+
+        mkdir -p vendor_dlkm/lib/modules/
+
+        # GKI built-in modules
+        make -C kernel O=kernel/out modules_install INSTALL_MOD_PATH=vendor_dlkm
+
+        # Build MTK kernel modules
+        make -C kernel O=kernel/out M=$GITHUB_WORKSPACE/mtk_modules
+        make -C kernel O=kernel/out M=$GITHUB_WORKSPACE/device_modules
+        make -C kernel O=kernel/out M=$GITHUB_WORKSPACE/cam_modules
+
+        find mtk_modules -name '*.ko' -exec cp {} vendor_dlkm/lib/modules/ \;
+        find device_modules -name '*.ko' -exec cp {} vendor_dlkm/lib/modules/ \;
+        find cam_modules -name '*.ko' -exec cp {} vendor_dlkm/lib/modules/ \;
+
+        # Create vendor_dlkm.img (ext4)
+        sudo apt install -y e2fsprogs
+        mke2fs -t ext4 -b 4096 -d vendor_dlkm vendor_dlkm.img 100M
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: duchamp-kernel
+        path: |
+          kernel/out/arch/arm64/boot/Image.gz
+          kernel/out/arch/arm64/boot/dts/mediatek/dtb.img
+          vendor_dlkm.img
