@@ -60,7 +60,7 @@ jobs:
 
         # Build MTK kernel modules
         make -C kernel O=kernel/out M=$GITHUB_WORKSPACE/mtk_modules
-        make -C kernel O=kernel/out M=$GITHUB_WORKSPACE/device_modules
+        make -C kernel O=kernel/out mgk_64_k61_defconfig M=$GITHUB_WORKSPACE/device_modules
         make -C kernel O=kernel/out M=$GITHUB_WORKSPACE/cam_modules
 
         find mtk_modules -name '*.ko' -exec cp {} vendor_dlkm/lib/modules/ \;
