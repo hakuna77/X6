@@ -15,7 +15,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y bc bison build-essential cpio curl flex git libssl-dev \
-          libncurses5-dev libelf-dev python3 unzip zip
+          libncurses5-dev libelf-dev python3 unzip zip dwarves
 
     - name: Clone kernel source
       run: |
